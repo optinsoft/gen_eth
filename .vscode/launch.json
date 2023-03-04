@@ -10,7 +10,7 @@
             "request": "launch",
             "program": "pygeneth.py",
             "console": "integratedTerminal",
-            "justMyCode": false
+            "justMyCode": false        
         }
     ]
 }
