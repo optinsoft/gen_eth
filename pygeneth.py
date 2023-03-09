@@ -340,7 +340,7 @@ def main_genEthAddress():
         print(f"priv[{i}]:                       0x{priv}")
         _a = [a_gpu[j][i].get().tolist() for j in range(5)]
         eth_address = key_to_hex(_a)
-        print(f"eth address[{i}:                 0x{eth_address}")
+        print(f"eth address[{i}]:                 0x{eth_address}")
         pk_bytes = bytes.fromhex(priv) 
         public_key = ecdsa.SigningKey.from_string(pk_bytes, curve=ecdsa.SECP256k1).verifying_key.to_string()    
         address = public_key_to_address(public_key, i, False)
