@@ -57,7 +57,7 @@ def main_genPubKey():
                         t + "\n" + l if len(l) > 0 and not l.startswith('#include ') else t, 
                         lines, '')
         return result
-    dirSecp256k1 = './hashcat/'    
+    dirSecp256k1 = './secp256k1/'    
     kernel_code += load_code(dirSecp256k1 + 'inc_vendor.h')
     kernel_code += load_code(dirSecp256k1 + 'inc_types.h')
     kernel_code += load_code(dirSecp256k1 + 'inc_ecc_secp256k1.h')
@@ -226,7 +226,7 @@ def main_genEthAddress():
                         t + "\n" + l if len(l) > 0 and not l.startswith('#include ') else t, 
                         lines, '')
         return result
-    dirSecp256k1 = './hashcat/'    
+    dirSecp256k1 = './secp256k1/'    
     kernel_code += load_code(dirSecp256k1 + 'inc_vendor.h')
     kernel_code += load_code(dirSecp256k1 + 'inc_types.h')
     kernel_code += load_code(dirSecp256k1 + 'inc_ecc_secp256k1.h')
