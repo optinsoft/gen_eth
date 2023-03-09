@@ -23,7 +23,10 @@ def testUInt32(idx: int) -> int:
     r = [0x68e23530, 0xdeb6d501, 0x1ab56d8a, 0xd9f7b4a3, 0xb424f111, 0x2f086063, 0x57497495, 0x929f72dc][idx]
     return r
 
-def randomUInt32Array(count: int, idx: int) -> list[int]:
+def randomUInt32Array(count: int) -> list[int]:
+    return [randomUInt32() for i in range(count)]
+
+def randomWithTestUInt32Array(count: int, idx: int) -> list[int]:
     return [testUInt32(idx) if i == 0 else randomUInt32() for i in range(count)]
 
 def constUInt32Array(count: int, v: int) -> list[int]:
@@ -41,7 +44,7 @@ def public_key_to_address(public_key, i, print_keccak):
 def key_to_hex(k: list[int]) -> str:
     return reduce(lambda s, t: str(s) + t.to_bytes(4, byteorder='big').hex(), k[1:], k[0].to_bytes(4, byteorder='big').hex())
 
-def main_genPubKey(keyCount: int):
+def main_genPubKey(keyCount: int, verify: bool):
     CL_PATH = config('CL_PATH', default='')
     if len(CL_PATH) > 0:
         os.environ['PATH'] += ';'+CL_PATH
@@ -71,7 +74,7 @@ def main_genPubKey(keyCount: int):
     # with open('./kernel.cl', 'w') as f:
     #     f.write(kernel_code)
 
-    k = [np.array(randomUInt32Array(keyCount, i), dtype=np.uint32) for i in range(8)]
+    k = [np.array(randomUInt32Array(keyCount), dtype=np.uint32) for i in range(8)]
     xy = [np.array(constUInt32Array(keyCount, 0), dtype=np.uint32) for i in range(16)]
     h = [np.array(constUInt32Array(keyCount, 0), dtype=np.uint32) for i in range(8)]
 
@@ -89,7 +92,7 @@ def main_genPubKey(keyCount: int):
         block=(keyCount, 1, 1))
 
     for i in range(keyCount):
-        print(f'--- [{i}] ---')
+        # print(f'--- [{i}] ---')
         _k = [k_gpu[j][i].get().tolist() for j in range(8)]
         priv = key_to_hex(_k)
         print(f"priv[{i}]:                      0x{priv}")
@@ -98,14 +101,15 @@ def main_genPubKey(keyCount: int):
         print(f"pub[{i}]:                       0x{pub}")
         _h = [h_gpu[j][i].get().tolist() for j in range(8)]
         keccak = key_to_hex(_h)
-        print(f"keccak[{i}]:                    0x{keccak}")        
-        pk_bytes = bytes.fromhex(priv) 
-        public_key = ecdsa.SigningKey.from_string(pk_bytes, curve=ecdsa.SECP256k1).verifying_key.to_string()    
-        print(f"Public Key[{i}] (verification): 0x{public_key.hex()}")
-        address = public_key_to_address(public_key, i, True)
-        # print(f"Address[{i}]:    {address}")
+        print(f"keccak[{i}]:                    0x{keccak}")      
+        if verify:  
+            pk_bytes = bytes.fromhex(priv) 
+            public_key = ecdsa.SigningKey.from_string(pk_bytes, curve=ecdsa.SECP256k1).verifying_key.to_string()    
+            print(f"Public Key[{i}] (verification): 0x{public_key.hex()}")
+            address = public_key_to_address(public_key, i, True)
+            # print(f"Address[{i}]:    {address}")
 
-def main_genEthAddress(keyCount: int):
+def main_genEthAddress(keyCount: int, verify: bool):
     CL_PATH = config('CL_PATH', default='')
     if len(CL_PATH) > 0:
         os.environ['PATH'] += ';'+CL_PATH
@@ -135,7 +139,7 @@ def main_genEthAddress(keyCount: int):
     # with open('./kernel.cl', 'w') as f:
     #     f.write(kernel_code)
 
-    k = [np.array(randomUInt32Array(keyCount, i), dtype=np.uint32) for i in range(8)]
+    k = [np.array(randomUInt32Array(keyCount), dtype=np.uint32) for i in range(8)]
     a = [np.array(constUInt32Array(keyCount, 0), dtype=np.uint32) for i in range(5)]
 
     k_gpu = [gpuarray.to_gpu(k[i]) for i in range(8)]
@@ -150,18 +154,22 @@ def main_genEthAddress(keyCount: int):
         block=(keyCount, 1, 1))
 
     for i in range(keyCount):
-        print(f'--- [{i}] ---')
+        # print(f'--- [{i}] ---')
         _k = [k_gpu[j][i].get().tolist() for j in range(8)]
         priv = key_to_hex(_k)
-        print(f"priv[{i}]:                       0x{priv}")
+        if verify:
+            print(f"priv[{i}]:                       0x{priv}")
         _a = [a_gpu[j][i].get().tolist() for j in range(5)]
         eth_address = key_to_hex(_a)
-        print(f"eth address[{i}]:                0x{eth_address}")
-        pk_bytes = bytes.fromhex(priv) 
-        public_key = ecdsa.SigningKey.from_string(pk_bytes, curve=ecdsa.SECP256k1).verifying_key.to_string()    
-        address = public_key_to_address(public_key, i, False)
-        print(f"eth address[{i}] (verification): {address}")
+        if verify:
+            print(f"eth address[{i}]:                0x{eth_address}")
+            pk_bytes = bytes.fromhex(priv) 
+            public_key = ecdsa.SigningKey.from_string(pk_bytes, curve=ecdsa.SECP256k1).verifying_key.to_string()    
+            address = public_key_to_address(public_key, i, False)
+            print(f"eth address[{i}] (verification): {address}")
+        else:
+            print(f"0x{priv},0x{eth_address}")
 
 if __name__ == "__main__":
-    # main_genPubKey(32)
-    main_genEthAddress(32)
+    # main_genPubKey(keyCount=32, verify=True)
+    main_genEthAddress(keyCount=32, verify=True)
