@@ -57,11 +57,11 @@ def main_genPubKey():
                         t + "\n" + l if len(l) > 0 and not l.startswith('#include ') else t, 
                         lines, '')
         return result
-    dirOpenCL = './OpenCL/'    
-    kernel_code += load_code(dirOpenCL + 'inc_vendor.h')
-    kernel_code += load_code(dirOpenCL + 'inc_types.h')
-    kernel_code += load_code(dirOpenCL + 'inc_ecc_secp256k1.h')
-    kernel_code += load_code(dirOpenCL + 'inc_ecc_secp256k1.cl')
+    dirSecp256k1 = './hashcat/'    
+    kernel_code += load_code(dirSecp256k1 + 'inc_vendor.h')
+    kernel_code += load_code(dirSecp256k1 + 'inc_types.h')
+    kernel_code += load_code(dirSecp256k1 + 'inc_ecc_secp256k1.h')
+    kernel_code += load_code(dirSecp256k1 + 'inc_ecc_secp256k1.cl')
     dirKeccak = './keccak/'
     kernel_code += load_code(dirKeccak + 'keccak256.h')
     kernel_code += load_code(dirKeccak + 'keccak256.cl')
@@ -226,11 +226,11 @@ def main_genEthAddress():
                         t + "\n" + l if len(l) > 0 and not l.startswith('#include ') else t, 
                         lines, '')
         return result
-    dirOpenCL = './OpenCL/'    
-    kernel_code += load_code(dirOpenCL + 'inc_vendor.h')
-    kernel_code += load_code(dirOpenCL + 'inc_types.h')
-    kernel_code += load_code(dirOpenCL + 'inc_ecc_secp256k1.h')
-    kernel_code += load_code(dirOpenCL + 'inc_ecc_secp256k1.cl')
+    dirSecp256k1 = './hashcat/'    
+    kernel_code += load_code(dirSecp256k1 + 'inc_vendor.h')
+    kernel_code += load_code(dirSecp256k1 + 'inc_types.h')
+    kernel_code += load_code(dirSecp256k1 + 'inc_ecc_secp256k1.h')
+    kernel_code += load_code(dirSecp256k1 + 'inc_ecc_secp256k1.cl')
     dirKeccak = './keccak/'
     kernel_code += load_code(dirKeccak + 'keccak256.h')
     kernel_code += load_code(dirKeccak + 'keccak256.cl')
