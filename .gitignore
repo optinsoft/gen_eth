@@ -162,4 +162,3 @@ cython_debug/
 #.idea/
 
 kernel.cl
-OpenCL/
