@@ -12,24 +12,10 @@ import argparse
 import time
 
 def randomUInt32() -> int:
-    return int.from_bytes(np.random.bytes(4), byteorder='little', signed=False)
-
-'''
-test private key: 0x68e23530deb6d5011ab56d8ad9f7b4a3b424f1112f08606357497495929f72dc
-test public key:  0x5d99d81d9e731e0d7eebd1c858b1155da7981b1f0a16d322a361f8b589ad2e3bde53dc614e3a84164dab3f5899abde3b09553dca10c9716fa623a5942b9ea420
-test keccak256:   0x4c84817f57c18372837905af33f4b63eb1c5a9966a31cebc302f563685695506
-test eth address: 0x33f4b63eb1c5a9966a31cebc302f563685695506
-'''
-
-def testUInt32(idx: int) -> int:
-    r = [0x68e23530, 0xdeb6d501, 0x1ab56d8a, 0xd9f7b4a3, 0xb424f111, 0x2f086063, 0x57497495, 0x929f72dc][idx]
-    return r
+    return int.from_bytes(os.urandom(4), byteorder='little', signed=False)
 
 def randomUInt32Array(count: int) -> list[int]:
     return [randomUInt32() for i in range(count)]
-
-def randomWithTestUInt32Array(count: int, idx: int) -> list[int]:
-    return [testUInt32(idx) if i == 0 else randomUInt32() for i in range(count)]
 
 def constUInt32Array(count: int, v: int) -> list[int]:
     return [v for i in range(count)]
@@ -87,12 +73,12 @@ def main_vanityEthAddress(prefix: str, keyBlockCount: int, maxBlocks: int, verif
 
     start_time = time.time()
 
+    a = [np.array(constUInt32Array(keyBlockCount, 0), dtype=np.uint32) for i in range(5)]
+    a_gpu = [gpuarray.to_gpu(a[i]) for i in range(5)]
+
     for n in range(maxBlocks):
         k = [np.array(randomUInt32Array(keyBlockCount), dtype=np.uint32) for i in range(8)]
-        a = [np.array(constUInt32Array(keyBlockCount, 0), dtype=np.uint32) for i in range(5)]
-
         k_gpu = [gpuarray.to_gpu(k[i]) for i in range(8)]
-        a_gpu = [gpuarray.to_gpu(a[i]) for i in range(5)]
 
         genEthAddress(
             a_gpu[0], a_gpu[1], a_gpu[2], a_gpu[3], a_gpu[4],
