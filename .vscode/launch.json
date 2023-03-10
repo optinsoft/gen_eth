@@ -16,9 +16,12 @@
                 "1a2b",
                 "-v",
                 "--blocks",
-                "1000",
+                "5000",
                 "--blockSize",
-                "128"
+                "256",
+                "--verify",
+                "--blockIterations",
+                "10"
             ]
         }
     ]

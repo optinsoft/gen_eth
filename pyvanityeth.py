@@ -40,7 +40,7 @@ def public_key_to_address(public_key, i, print_keccak):
 def key_to_hex(k: list[int]) -> str:
     return reduce(lambda s, t: str(s) + t.to_bytes(4, byteorder='big').hex(), k[1:], k[0].to_bytes(4, byteorder='big').hex())
 
-def main_vanityEthAddress(prefixBytes: bytes, keyBlockCount: int, maxBlocks: int, verify: bool, verbose: bool) -> int:
+def main_vanityEthAddress(prefixBytes: bytes, keyBlockCount: int, maxBlocks: int, blockIterations: int, verify: bool, verbose: bool) -> int:
     CL_PATH = config('CL_PATH', default='')
     if len(CL_PATH) > 0:
         os.environ['PATH'] += ';'+CL_PATH
@@ -89,7 +89,8 @@ def main_vanityEthAddress(prefixBytes: bytes, keyBlockCount: int, maxBlocks: int
 
     p =  np.array(prefixUInt32Array(prefixBytes), dtype=np.uint32)
     p_gpu = gpuarray.to_gpu(p)
-    p_len = np.int8(len(prefixBytes))
+    p_len = np.int32(len(prefixBytes))
+    n_iterations = np.int32(blockIterations)
 
     for n in range(maxBlocks):
         k = [np.array(randomUInt32Array(keyBlockCount), dtype=np.uint32) for i in range(8)]
@@ -98,7 +99,7 @@ def main_vanityEthAddress(prefixBytes: bytes, keyBlockCount: int, maxBlocks: int
         genVanityEthAddress(
             a_gpu[0], a_gpu[1], a_gpu[2], a_gpu[3], a_gpu[4], ap_gpu,
             k_gpu[0], k_gpu[1], k_gpu[2], k_gpu[3], k_gpu[4], k_gpu[5], k_gpu[6], k_gpu[7],
-            p_gpu, p_len,
+            p_gpu, p_len, n_iterations,
             block=(keyBlockCount, 1, 1))
         
         for i in range(keyBlockCount):
@@ -112,7 +113,7 @@ def main_vanityEthAddress(prefixBytes: bytes, keyBlockCount: int, maxBlocks: int
                         end_time = time.time()  # end time
                         elapsed_time = end_time - start_time
                         print(f"Vanity address found in block {n+1}, {elapsed_time:.2f} seconds")
-                        count = n * keyBlockCount
+                        count = (n + 1) * keyBlockCount * (blockIterations if blockIterations > 0 else 1)
                         print(f"Generated {count} ethereum addresses, {count/elapsed_time:.2f} addresses/second")
                     _k = [k_gpu[j][i].get().item() for j in range(8)]
                     priv = key_to_hex(_k)
@@ -131,7 +132,7 @@ def main_vanityEthAddress(prefixBytes: bytes, keyBlockCount: int, maxBlocks: int
         end_time = time.time()  # end time
         elapsed_time = end_time - start_time
         print(f"Not found, {elapsed_time:.2f} seconds")
-        count = maxBlocks * keyBlockCount
+        count = maxBlocks * keyBlockCount * (blockIterations if blockIterations > 0 else 1)
         print(f"Generated {count} ethereum addresses, {count/elapsed_time:.2f} addresses/second")
     return 0
 
@@ -147,5 +148,6 @@ if __name__ == "__main__":
     parser.add_argument("--prefix", required=True, type=hexPrefix, help="vanity ethereum address PREFIX (without leading 0x)")
     parser.add_argument("--blocks", required=False, type=int, default=1000, help="try find vanity ethereum address within BLOCKS blocks (default: 1000)")
     parser.add_argument("--blockSize", required=False, type=int, default=128, help="generate block of BLOCKSIZE ethereum addresses by using GPU (default: 128)")
+    parser.add_argument("--blockIterations", required=False, type=int, default=1, help="attempts to find vanity  ethereum address within each block")
     args = parser.parse_args()
-    main_vanityEthAddress(args.prefix, args.blockSize, args.blocks, args.verify, args.verbose)
+    main_vanityEthAddress(args.prefix, args.blockSize, args.blocks, args.blockIterations, args.verify, args.verbose)
