@@ -182,7 +182,7 @@ __global__ void genVanityEthAddress(
 
         if (ni >= n_local || rp_local) break;
 
-        k_local[(ni & 7)] += 65537;
+        k_local[(ni & 7)] += 479001599;
     }
 
     //save results
