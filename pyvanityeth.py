@@ -20,6 +20,14 @@ def randomUInt32Array(count: int) -> list[int]:
 def constUInt32Array(count: int, v: int) -> list[int]:
     return [v for i in range(count)]
 
+def prefixUInt32(prefixBytes: bytes) -> int:
+    pl = len(prefixBytes)
+    p = [prefixBytes[i] if i < pl else 0 for i in range(4)]
+    return int.from_bytes(p, byteorder='big', signed=False)
+
+def prefixUInt32Array(prefixBytes: bytes) -> list[int]:
+    return [prefixUInt32(prefixBytes[i*4:i*4+4]) for i in range(5)]
+
 def public_key_to_address(public_key, i, print_keccak):
     keccak_hash = keccak.new(digest_bits=256)
     keccak_hash.update(public_key)
@@ -32,7 +40,7 @@ def public_key_to_address(public_key, i, print_keccak):
 def key_to_hex(k: list[int]) -> str:
     return reduce(lambda s, t: str(s) + t.to_bytes(4, byteorder='big').hex(), k[1:], k[0].to_bytes(4, byteorder='big').hex())
 
-def main_vanityEthAddress(prefix: str, keyBlockCount: int, maxBlocks: int, verify: bool, verbose: bool) -> int:
+def main_vanityEthAddress(prefixBytes: bytes, keyBlockCount: int, maxBlocks: int, verify: bool, verbose: bool) -> int:
     CL_PATH = config('CL_PATH', default='')
     if len(CL_PATH) > 0:
         os.environ['PATH'] += ';'+CL_PATH
@@ -66,49 +74,59 @@ def main_vanityEthAddress(prefix: str, keyBlockCount: int, maxBlocks: int, verif
         print("Building kernel...")
 
     mod = SourceModule(kernel_code)
-    genEthAddress = mod.get_function('genEthAddress')
+    genVanityEthAddress = mod.get_function('genVanityEthAddress')
+
+    prefix = prefixBytes.hex()
 
     if verbose:
-        print("Searching vanity address...")
+        print(f'Searching vanity address with prefix "{prefix}"...')
 
     start_time = time.time()
 
     a = [np.array(constUInt32Array(keyBlockCount, 0), dtype=np.uint32) for i in range(5)]
     a_gpu = [gpuarray.to_gpu(a[i]) for i in range(5)]
+    ap_gpu = gpuarray.to_gpu(np.array(constUInt32Array(keyBlockCount, 0), dtype=np.uint32))
+
+    p =  np.array(prefixUInt32Array(prefixBytes), dtype=np.uint32)
+    p_gpu = gpuarray.to_gpu(p)
+    p_len = np.int8(len(prefixBytes))
 
     for n in range(maxBlocks):
         k = [np.array(randomUInt32Array(keyBlockCount), dtype=np.uint32) for i in range(8)]
         k_gpu = [gpuarray.to_gpu(k[i]) for i in range(8)]
 
-        genEthAddress(
-            a_gpu[0], a_gpu[1], a_gpu[2], a_gpu[3], a_gpu[4],
+        genVanityEthAddress(
+            a_gpu[0], a_gpu[1], a_gpu[2], a_gpu[3], a_gpu[4], ap_gpu,
             k_gpu[0], k_gpu[1], k_gpu[2], k_gpu[3], k_gpu[4], k_gpu[5], k_gpu[6], k_gpu[7],
+            p_gpu, p_len,
             block=(keyBlockCount, 1, 1))
         
         for i in range(keyBlockCount):
             # print(f'--- [{i}] ---')
-            _a = [a_gpu[j][i].get().tolist() for j in range(5)]
-            eth_address = key_to_hex(_a)
-            if eth_address.startswith(prefix):
-                if verbose:
-                    end_time = time.time()  # end time
-                    elapsed_time = end_time - start_time
-                    print(f"Vanity address found in block {n+1}, {elapsed_time:.2f} seconds")
-                    count = n * keyBlockCount
-                    print(f"Generated {count} ethereum addresses, {count/elapsed_time:.2f} addresses/second")
-                _k = [k_gpu[j][i].get().tolist() for j in range(8)]
-                priv = key_to_hex(_k)
-                if verify:
-                    print(f"priv[{i}]:                       0x{priv}")
-                if verify:
-                    print(f"eth address[{i}]:                0x{eth_address}")
-                    pk_bytes = bytes.fromhex(priv) 
-                    public_key = ecdsa.SigningKey.from_string(pk_bytes, curve=ecdsa.SECP256k1).verifying_key.to_string()    
-                    address = public_key_to_address(public_key, i, False)
-                    print(f"eth address[{i}] (verification): {address}")
-                else:
-                    print(f"0x{priv},0x{eth_address}")
-                return 1
+            _ap = ap_gpu[i].get().item()
+            if _ap != 0:
+                _a = [a_gpu[j][i].get().item() for j in range(5)]
+                eth_address = key_to_hex(_a)
+                if eth_address.startswith(prefix):
+                    if verbose:
+                        end_time = time.time()  # end time
+                        elapsed_time = end_time - start_time
+                        print(f"Vanity address found in block {n+1}, {elapsed_time:.2f} seconds")
+                        count = n * keyBlockCount
+                        print(f"Generated {count} ethereum addresses, {count/elapsed_time:.2f} addresses/second")
+                    _k = [k_gpu[j][i].get().item() for j in range(8)]
+                    priv = key_to_hex(_k)
+                    if verify:
+                        print(f"priv[{i}]:                       0x{priv}")
+                    if verify:
+                        print(f"eth address[{i}]:                0x{eth_address}")
+                        pk_bytes = bytes.fromhex(priv) 
+                        public_key = ecdsa.SigningKey.from_string(pk_bytes, curve=ecdsa.SECP256k1).verifying_key.to_string()    
+                        address = public_key_to_address(public_key, i, False)
+                        print(f"eth address[{i}] (verification): {address}")
+                    else:
+                        print(f"0x{priv},0x{eth_address}")
+                    return 1
     if verbose:
         end_time = time.time()  # end time
         elapsed_time = end_time - start_time
@@ -117,11 +135,16 @@ def main_vanityEthAddress(prefix: str, keyBlockCount: int, maxBlocks: int, verif
         print(f"Generated {count} ethereum addresses, {count/elapsed_time:.2f} addresses/second")
     return 0
 
+def hexPrefix(s: str) -> bytes:
+    if s.startswith('0x'):
+        return bytes.fromhex(s[2:])
+    return bytes.fromhex(s)
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="pyvanityeth.py")
     parser.add_argument('-v', '--verbose', action='store_true', help='verbose')
     parser.add_argument('--verify', action='store_true', help='verify found ethereum address')
-    parser.add_argument("--prefix", required=True, type=str, help="vanity ethereum address PREFIX (without leading 0x)")
+    parser.add_argument("--prefix", required=True, type=hexPrefix, help="vanity ethereum address PREFIX (without leading 0x)")
     parser.add_argument("--blocks", required=False, type=int, default=1000, help="try find vanity ethereum address within BLOCKS blocks (default: 1000)")
     parser.add_argument("--blockSize", required=False, type=int, default=128, help="generate block of BLOCKSIZE ethereum addresses by using GPU (default: 128)")
     args = parser.parse_args()

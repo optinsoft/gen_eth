@@ -93,13 +93,13 @@ def main_genPubKey(keyCount: int, verify: bool):
 
     for i in range(keyCount):
         # print(f'--- [{i}] ---')
-        _k = [k_gpu[j][i].get().tolist() for j in range(8)]
+        _k = [k_gpu[j][i].get().item() for j in range(8)]
         priv = key_to_hex(_k)
         print(f"priv[{i}]:                      0x{priv}")
-        xy = [xy_gpu[j][i].get().tolist() for j in range(16)]
+        xy = [xy_gpu[j][i].get().item() for j in range(16)]
         pub = key_to_hex(xy)
         print(f"pub[{i}]:                       0x{pub}")
-        _h = [h_gpu[j][i].get().tolist() for j in range(8)]
+        _h = [h_gpu[j][i].get().item() for j in range(8)]
         keccak = key_to_hex(_h)
         print(f"keccak[{i}]:                    0x{keccak}")      
         if verify:  
@@ -155,11 +155,11 @@ def main_genEthAddress(keyCount: int, verify: bool):
 
     for i in range(keyCount):
         # print(f'--- [{i}] ---')
-        _k = [k_gpu[j][i].get().tolist() for j in range(8)]
+        _k = [k_gpu[j][i].get().item() for j in range(8)]
         priv = key_to_hex(_k)
         if verify:
             print(f"priv[{i}]:                       0x{priv}")
-        _a = [a_gpu[j][i].get().tolist() for j in range(5)]
+        _a = [a_gpu[j][i].get().item() for j in range(5)]
         eth_address = key_to_hex(_a)
         if verify:
             print(f"eth address[{i}]:                0x{eth_address}")

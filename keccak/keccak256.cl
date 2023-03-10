@@ -1,5 +1,7 @@
 #include "keccak256.h"
 
+#define NUM_ROUNDS				24
+
 DECLSPEC u64 rotl64(u64 x, int i) {
     return ((0U + x) << i) | (x >> ((64 - i) & 63));
 }
