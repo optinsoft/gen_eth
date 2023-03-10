@@ -51,7 +51,7 @@ __global__ void genEthAddress(
     w[7]  = l2be(x[0]);
     w[6]  = l2be(x[1]);
     w[5]  = l2be(x[2]);
-    w[4] = l2be(x[3]);
+    w[4]  = l2be(x[3]);
     w[3]  = l2be(x[4]);
     w[2]  = l2be(x[5]);
     w[1]  = l2be(x[6]);
@@ -118,12 +118,12 @@ __global__ void genVanityEthAddress(
     l = (l >= 4) ? l-4 : 0; 
     p_local[4] = p[4] & m_local[4];
 
-    u32 n_local = n;
+    u32 n_local = n > 0 ? n : 1;
 
     u32 x[8];
     u32 y[8];
     u32 w[16];
-    u32 j;
+    u32 ni = 0;
 
     while (1) {
 
@@ -150,7 +150,7 @@ __global__ void genVanityEthAddress(
         w[7]  = l2be(x[0]);
         w[6]  = l2be(x[1]);
         w[5]  = l2be(x[2]);
-        w[4] = l2be(x[3]);
+        w[4]  = l2be(x[3]);
         w[3]  = l2be(x[4]);
         w[2]  = l2be(x[5]);
         w[1]  = l2be(x[6]);
@@ -166,22 +166,23 @@ __global__ void genVanityEthAddress(
 
         keccak256_update_state(keccak_state, (u8*)w, 64);
 
+        ni++;
+
         r_local[0] = l2be((u32)(keccak_state[1] >> 32));
         r_local[1] = l2be((u32)keccak_state[2]);
         r_local[2] = l2be((u32)(keccak_state[2] >> 32));
         r_local[3] = l2be((u32)keccak_state[3]);
         r_local[4] = l2be((u32)(keccak_state[3] >> 32));
-        rp_local =  ((r_local[0] & m_local[0]) == p_local[0]) &&  
+        rp_local = (((r_local[0] & m_local[0]) == p_local[0]) &&  
                     ((r_local[1] & m_local[1]) == p_local[1]) &&
                     ((r_local[2] & m_local[2]) == p_local[2]) &&
                     ((r_local[3] & m_local[3]) == p_local[3]) &&
-                    ((r_local[4] & m_local[4]) == p_local[4]);
+                    ((r_local[4] & m_local[4]) == p_local[4])) 
+                    ? ni : 0;
 
-        if (n_local <= 1 || rp_local) break;
-        n_local--;
+        if (ni >= n_local || rp_local) break;
 
-        j = (n_local & 7);
-        k_local[7-j] += 1;
+        k_local[(ni & 7)] += 65537;
     }
 
     //save results

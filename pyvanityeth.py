@@ -112,7 +112,7 @@ def main_vanityEthAddress(prefixBytes: bytes, keyBlockCount: int, maxBlocks: int
                     if verbose:
                         end_time = time.time()  # end time
                         elapsed_time = end_time - start_time
-                        print(f"Vanity address found in block {n+1}, {elapsed_time:.2f} seconds")
+                        print(f"Vanity address found in block # {n+1} iteration # {_ap}, {elapsed_time:.2f} seconds")
                         count = (n + 1) * keyBlockCount * (blockIterations if blockIterations > 0 else 1)
                         print(f"Generated {count} ethereum addresses, {count/elapsed_time:.2f} addresses/second")
                     _k = [k_gpu[j][i].get().item() for j in range(8)]
@@ -128,6 +128,8 @@ def main_vanityEthAddress(prefixBytes: bytes, keyBlockCount: int, maxBlocks: int
                     else:
                         print(f"0x{priv},0x{eth_address}")
                     return 1
+                else:
+                    print(f"Unexpected result: _ap[{i}]={_ap}, eth_address[{i}]={eth_address}")
     if verbose:
         end_time = time.time()  # end time
         elapsed_time = end_time - start_time

@@ -21,7 +21,7 @@
                 "256",
                 "--verify",
                 "--blockIterations",
-                "10"
+                "20"
             ]
         }
     ]
