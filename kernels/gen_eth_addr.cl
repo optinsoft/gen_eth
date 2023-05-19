@@ -74,7 +74,7 @@ __global__ void genEthAddress(
     r4[i] = l2be((u32)(keccak_state[3] >> 32));
 }
 
-__global__ void genVanityEthAddress(
+__global__ void genEthAddressWithPrefix(
     GLOBAL_AS u32 *r0, GLOBAL_AS u32 *r1, GLOBAL_AS u32 *r2, GLOBAL_AS u32 *r3, GLOBAL_AS u32 *r4, GLOBAL_AS u32 *rp,
     GLOBAL_AS u32 *k0, GLOBAL_AS u32 *k1, GLOBAL_AS u32 *k2, GLOBAL_AS u32 *k3,
     GLOBAL_AS u32 *k4, GLOBAL_AS u32 *k5, GLOBAL_AS u32 *k6, GLOBAL_AS u32 *k7,

@@ -37,7 +37,7 @@ def public_key_to_address(public_key, i, print_keccak):
     keccak_hash.update(public_key)
     keccak_digest = keccak_hash.digest()
     if print_keccak:
-        print(f'Keccak[{i}] (verification):     0x{keccak_digest.hex()}')
+        print(f'keccak[{i}] (verification):     0x{keccak_digest.hex()}')
     address = '0x' + keccak_digest[-20:].hex()
     return address
 
@@ -105,7 +105,7 @@ def main_genPubKey(keyCount: int, verify: bool):
         if verify:  
             pk_bytes = bytes.fromhex(priv) 
             public_key = ecdsa.SigningKey.from_string(pk_bytes, curve=ecdsa.SECP256k1).verifying_key.to_string()    
-            print(f"Public Key[{i}] (verification): 0x{public_key.hex()}")
+            print(f"public Key[{i}] (verification): 0x{public_key.hex()}")
             address = public_key_to_address(public_key, i, True)
             # print(f"Address[{i}]:    {address}")
 

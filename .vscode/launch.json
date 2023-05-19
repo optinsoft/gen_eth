@@ -15,13 +15,10 @@
                 "--prefix",
                 "1a2b",
                 "-v",
-                "--blocks",
-                "5000",
-                "--blockSize",
-                "256",
+                "--blocks", "5000",
+                "--blockSize", "256",
                 "--verify",
-                "--blockIterations",
-                "20"
+                "--blockIterations", "20"
             ]
         }
     ]

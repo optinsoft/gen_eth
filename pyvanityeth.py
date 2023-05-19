@@ -74,7 +74,7 @@ def main_vanityEthAddress(prefixBytes: bytes, keyBlockCount: int, maxBlocks: int
         print("Building kernel...")
 
     mod = SourceModule(kernel_code)
-    genVanityEthAddress = mod.get_function('genVanityEthAddress')
+    genEthAddressWithPrefix = mod.get_function('genEthAddressWithPrefix')
 
     prefix = prefixBytes.hex()
 
@@ -96,7 +96,7 @@ def main_vanityEthAddress(prefixBytes: bytes, keyBlockCount: int, maxBlocks: int
         k = [np.array(randomUInt32Array(keyBlockCount), dtype=np.uint32) for i in range(8)]
         k_gpu = [gpuarray.to_gpu(k[i]) for i in range(8)]
 
-        genVanityEthAddress(
+        genEthAddressWithPrefix(
             a_gpu[0], a_gpu[1], a_gpu[2], a_gpu[3], a_gpu[4], ap_gpu,
             k_gpu[0], k_gpu[1], k_gpu[2], k_gpu[3], k_gpu[4], k_gpu[5], k_gpu[6], k_gpu[7],
             p_gpu, p_len, n_iterations,
@@ -107,8 +107,8 @@ def main_vanityEthAddress(prefixBytes: bytes, keyBlockCount: int, maxBlocks: int
             _ap = ap_gpu[i].get().item()
             if _ap != 0:
                 _a = [a_gpu[j][i].get().item() for j in range(5)]
-                eth_address = key_to_hex(_a)
-                if eth_address.startswith(prefix):
+                eth_address = '0x'+key_to_hex(_a)
+                if eth_address.startswith('0x'+prefix):
                     if verbose:
                         end_time = time.time()  # end time
                         elapsed_time = end_time - start_time
@@ -117,16 +117,17 @@ def main_vanityEthAddress(prefixBytes: bytes, keyBlockCount: int, maxBlocks: int
                         print(f"Generated {count} ethereum addresses, {count/elapsed_time:.2f} addresses/second")
                     _k = [k_gpu[j][i].get().item() for j in range(8)]
                     priv = key_to_hex(_k)
+                    if verify and verbose:
+                        print(f"private key[{i}]:                0x{priv}")
+                        print(f"eth address[{i}]:                {eth_address}")
                     if verify:
-                        print(f"priv[{i}]:                       0x{priv}")
-                    if verify:
-                        print(f"eth address[{i}]:                0x{eth_address}")
                         pk_bytes = bytes.fromhex(priv) 
                         public_key = ecdsa.SigningKey.from_string(pk_bytes, curve=ecdsa.SECP256k1).verifying_key.to_string()    
                         address = public_key_to_address(public_key, i, False)
-                        print(f"eth address[{i}] (verification): {address}")
-                    else:
-                        print(f"0x{priv},0x{eth_address}")
+                        if verbose:
+                            print(f"eth address[{i}] (verification): {address}")
+                        if address != eth_address:
+                            print(f"Verification failed: _as[{i}]={_ap}, eth_address[{i}]={eth_address}, verification={address}")
                     return 1
                 else:
                     print(f"Unexpected result: _ap[{i}]={_ap}, eth_address[{i}]={eth_address}")
