@@ -1,3 +1,5 @@
+// @author: Vitaly <vitaly@optinsoft.net> | github.com/optinsoft
+
 // little endian to big endian
 DECLSPEC u32 l2be(u32 x) {
     return (x & 0xff) << 24 | (x & 0xff00) << 8 | (x & 0xff0000) >> 8 | (x & 0xff000000) >> 24;

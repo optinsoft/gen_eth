@@ -1,3 +1,6 @@
+"""
+@author: Vitaly <vitaly@optinsoft.net> | github.com/optinsoft
+"""
 import pycuda.driver as cuda
 from pycuda.compiler import SourceModule
 import pycuda.gpuarray as gpuarray

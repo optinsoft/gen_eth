@@ -12,12 +12,11 @@
             "console": "integratedTerminal",
             "justMyCode": true,
             "args": [
-                "--prefix",
-                "1a2b",
-                "-v",
+                "--verbose", "--verify",
+                "--output", "./output/l_1a2b.txt",
+                "--prefix", "1a2b",
                 "--blocks", "5000",
                 "--blockSize", "256",
-                "--verify",
                 "--blockIterations", "20"
             ]
         }

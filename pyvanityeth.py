@@ -1,3 +1,6 @@
+"""
+@author: Vitaly <vitaly@optinsoft.net> | github.com/optinsoft
+"""
 import pycuda.driver as cuda
 from pycuda.compiler import SourceModule
 import pycuda.gpuarray as gpuarray
@@ -40,7 +43,7 @@ def public_key_to_address(public_key, i, print_keccak):
 def key_to_hex(k: list[int]) -> str:
     return reduce(lambda s, t: str(s) + t.to_bytes(4, byteorder='big').hex(), k[1:], k[0].to_bytes(4, byteorder='big').hex())
 
-def main_vanityEthAddress(prefixBytes: bytes, keyBlockCount: int, maxBlocks: int, blockIterations: int, verify: bool, verbose: bool) -> int:
+def main_vanityEthAddress(prefixBytes: bytes, keyBlockCount: int, maxBlocks: int, blockIterations: int, verify: bool, verbose: bool, outputFile: str) -> int:
     CL_PATH = config('CL_PATH', default='')
     if len(CL_PATH) > 0:
         os.environ['PATH'] += ';'+CL_PATH
@@ -128,6 +131,16 @@ def main_vanityEthAddress(prefixBytes: bytes, keyBlockCount: int, maxBlocks: int
                             print(f"eth address[{i}] (verification): {address}")
                         if address != eth_address:
                             print(f"Verification failed: _as[{i}]={_ap}, eth_address[{i}]={eth_address}, verification={address}")
+                        else:
+                            print(f"0x{priv},{eth_address}")
+                            if outputFile:
+                                with open(outputFile, "a") as of:
+                                    of.write(f"0x{priv},{eth_address}\n")
+                    else:
+                        print(f"0x{priv},{eth_address}")
+                        if outputFile:
+                            with open(outputFile, "a") as of:
+                                of.write(f"0x{priv},{eth_address}\n")
                     return 1
                 else:
                     print(f"Unexpected result: _ap[{i}]={_ap}, eth_address[{i}]={eth_address}")
@@ -151,6 +164,7 @@ if __name__ == "__main__":
     parser.add_argument("--prefix", required=True, type=hexPrefix, help="vanity ethereum address PREFIX (without leading 0x)")
     parser.add_argument("--blocks", required=False, type=int, default=1000, help="try find vanity ethereum address within BLOCKS blocks (default: 1000)")
     parser.add_argument("--blockSize", required=False, type=int, default=128, help="generate block of BLOCKSIZE ethereum addresses by using GPU (default: 128)")
-    parser.add_argument("--blockIterations", required=False, type=int, default=1, help="attempts to find vanity  ethereum address within each block")
+    parser.add_argument("--blockIterations", required=False, type=int, default=1, help="attempts to find vanity ethereum address within each block")
+    parser.add_argument("--output", required=False, type=str, default="", help="output found ethereum address to file")
     args = parser.parse_args()
-    main_vanityEthAddress(args.prefix, args.blockSize, args.blocks, args.blockIterations, args.verify, args.verbose)
+    main_vanityEthAddress(args.prefix, args.blockSize, args.blocks, args.blockIterations, args.verify, args.verbose, args.output)
