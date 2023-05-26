@@ -2,6 +2,18 @@
 
 ## Usage
 
+Generate vanity Ethereum address with prefix 0x1a2b
+
+```bash
+python .\pyvanityeth.py --prefix 0x1a2b
+```
+
+To display a help message listing the available command line arguments, run:
+
+```bash
+python .\pyvanityeth.py -h
+```
+
 ## Installation
 
 ```bash
@@ -14,7 +26,7 @@ python -m pip install ecdsa
 
 ## Configuration
 
-Set the C++ compiler path in `settings.ini`:
+Set the C++ compiler path in `settings.ini` (you can copy `settings.0.ini` to `settings.ini`), example:
 
 ```ini
 [settings]
