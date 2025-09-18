@@ -1,6 +1,7 @@
 """
 @author: Vitaly <vitaly@optinsoft.net> | github.com/optinsoft
 """
+import pathutils
 import pycuda.driver as cuda
 from pycuda.compiler import SourceModule
 import pycuda.gpuarray as gpuarray
@@ -48,10 +49,6 @@ def key_to_hex(k: list[int]) -> str:
     return reduce(lambda s, t: str(s) + t.to_bytes(4, byteorder='big').hex(), k[1:], k[0].to_bytes(4, byteorder='big').hex())
 
 def main_genPubKey(keyCount: int, verify: bool):
-    CL_PATH = config('CL_PATH', default='')
-    if len(CL_PATH) > 0:
-        os.environ['PATH'] += ';'+CL_PATH
-
     kernel_code = '''
 
     '''
@@ -113,10 +110,6 @@ def main_genPubKey(keyCount: int, verify: bool):
             # print(f"Address[{i}]:    {address}")
 
 def main_genEthAddress(keyCount: int, verify: bool):
-    CL_PATH = config('CL_PATH', default='')
-    if len(CL_PATH) > 0:
-        os.environ['PATH'] += ';'+CL_PATH
-
     kernel_code = '''
 
     '''

@@ -5,8 +5,16 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Python: pyvanityeth",
-            "type": "python",
+            "name": "pygeneth",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "pygeneth.py",
+            "console": "integratedTerminal",
+            "justMyCode": true
+        },
+        {
+            "name": "pyvanityeth",
+            "type": "debugpy",
             "request": "launch",
             "program": "pyvanityeth.py",
             "console": "integratedTerminal",

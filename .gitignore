@@ -1,4 +1,5 @@
 output/
+temp/
 settings.ini
 
 # Byte-compiled / optimized / DLL files
