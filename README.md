@@ -26,9 +26,13 @@ python -m pip install ecdsa
 
 ## Configuration
 
-Set the C++ compiler path in `settings.ini` (you can copy `settings.0.ini` to `settings.ini`), example:
+Configuration is done through a file called `settings.ini`. Example:
 
 ```ini
 [settings]
-CL_PATH=C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.35.32215\bin\Hostx64\x64
+CL_PATH=C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.44.35207\bin\Hostx64\x64
+CUDA_DLL_PATH=C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v13.0\bin\x64
 ```
+
+- CL_PATH - C++ compiler path
+- CUDA_DLL_PATH - CUDA Toolkit DLLs path
